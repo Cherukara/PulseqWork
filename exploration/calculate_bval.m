@@ -9,13 +9,13 @@ if ~isfield(Params_Diff,'Epsilon')
     Params_Diff.Epsilon = 0;
 end
 
-big_delta = Params_Diff.BigDelta * 1e-3; % Convert ms to s
-lil_delta = Params_Diff.LilDelta * 1e-3; % Convert ms to s
-epsilon = Params_Diff.Epsilon * 1e-3; % Convert ms to s
+big_delta = Params_Diff.BigDelta;% * 1e-3; % Convert ms to s
+lil_delta = Params_Diff.LilDelta;% * 1e-3; % Convert ms to s
+epsilon = Params_Diff.Epsilon ;%* 1e-3; % Convert ms to s
 gr_amp = Params_Diff.GradAmp; % Gradient amplitude in mT/m
 
 % Proton gyromagnetic ratio, specified in s^-1 mT^-1
-S_GAMMA = 2.6752218708e5;
+S_GAMMA = 2.6752218708e8;
 
 % Calculate b-value using formula from Mattiello, 1994 (will be in s/m^2)
 s_bval = ((S_GAMMA.*gr_amp).^2) .* ( (lil_delta.^2).*(big_delta - (lil_delta/3)) ...
@@ -23,6 +23,6 @@ s_bval = ((S_GAMMA.*gr_amp).^2) .* ( (lil_delta.^2).*(big_delta - (lil_delta/3))
                                 - (lil_delta.*epsilon.^2)/6 );
 
 % Scale into s/mm^2
-s_bval = s_bval.*1e-6;
+s_bval = s_bval.*1e-21;
 
 end
