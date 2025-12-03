@@ -426,8 +426,9 @@ methods
         s_readout = 0.25.*sin(linspace(0,10*pi,100));
 
         % Concatenate
-        t_all = [t_excite, t_diff1, t_refoc, t_diff2, t_readout, obj.Seq_TE+obj.Sys_TimeRead];
-        s_all = [s_excite, s_diff1, s_refoc, s_diff2, s_readout, 0];
+        t_rf = [t_excite, t_refoc, t_readout, obj.Seq_TE+obj.Sys_TimeRead];
+        s_rf = [s_excite, s_refoc, s_readout, 0];
+
 
         % Manually create a new figure if no handle is supplied
         if nargin < 2
@@ -436,7 +437,11 @@ methods
 
         % Figure Window
         set(fig_seq,'WindowStyle','normal','Position',[450,450,1100,300]);
-        plot(t_all,s_all,'k','LineWidth',2);
+        plot([-obj.Sys_TimeExcite,obj.Sys_TimeRead + obj.Seq_TE],[0,0],'k-');
+        hold on;
+        plot(t_rf,s_rf,'k');
+        plot(t_diff1,s_diff1,'k-','LineWidth',2);
+        plot(t_diff2,s_diff2,'k-','LineWidth',2);
         xlim([-obj.Sys_TimeExcite,obj.Sys_TimeRead + obj.Seq_TE]);
         ylim([-0.3,1.1]);
         xlabel('Time (ms)');
