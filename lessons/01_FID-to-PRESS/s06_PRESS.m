@@ -3,7 +3,7 @@ system = mr.opts('MaxGrad', 15, 'GradUnit', 'mT/m', ...
                  'rfRingdownTime', 20e-6, 'rfDeadTime', 100e-6, ...
                  'adcDeadTime', 20e-6);
 
-seq=mr.Sequence(system);              % Create a new sequence object
+seq=mr.Sequence(system); % Create a new sequence object
 voxel=[20 30 40]*1e-3; % voxel size
 Nx=8192;
 Nrep=1;
