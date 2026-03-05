@@ -35,3 +35,7 @@ doc/*.toc
 matlab/*.seq
 *.swp
 aclocal.m4
+
+#mtc
+
+/exploration/*.png
