@@ -16,12 +16,15 @@ system = mr.opts('rfRingdownTime', 20e-6, 'rfDeadTime', 100e-6, ...
 seq=mr.Sequence(system);      
 
 % Define some timing parameters
-Nx=128;
+Nx=8192;
 Nrep=1;
-adcDur=6.4e-3; 
+adcDur=12.4e-3; 
 rfDur=1000e-6;
-TR=13e-3;
-TE=10e-3;
+TR=80e-3;
+TE=50e-3;
+
+% Define spoiler area (in 1/m = Hz/m*s)
+spA = 3000;
 
 
 %% Define the Events
@@ -31,9 +34,12 @@ rf_ex = mr.makeBlockPulse(pi/2,'Duration',rfDur, 'system', system, 'use', 'excit
 
 % Create refocusing pulse
 rf_ref = mr.makeBlockPulse(pi,'Duration',rfDur, 'system',system, 'use', 'refocusing');
-    
-% Define ADC event
-adc = mr.makeAdc(Nx,'Duration',adcDur, 'system', system );
+
+% Create spoiler gradient
+g_sp = mr.makeTrapezoid('z','Area',spA,'system',system);
+
+% Possibly add extra delay to the REF pulse
+rf_ref.delay=max(mr.calcDuration(g_sp),rf_ref.delay);
 
 % Calculate delays
 
@@ -45,6 +51,9 @@ delay_TE1 = (TE/2) - (rf_ex.shape_dur/2) - rf_ex.ringdownTime - rf_ref.delay - (
 % ringdown time of the REF pulse, minus half the duration of the ADC
 delay_TE2 = (TE/2) - (rf_ref.shape_dur/2) - rf_ref.ringdownTime - (adcDur/2);
 
+% Define ADC event
+adc = mr.makeAdc(Nx,'Duration',adcDur, 'system', system, 'delay', delay_TE2);
+
 % Calculate TR delay
 delay_TR = TR - mr.calcDuration(rf_ex) - delay_TE1 - mr.calcDuration(rf_ref);
 
@@ -53,15 +62,25 @@ assert(delay_TR >= 0);
 assert(delay_TE1 >= 0);
 assert(delay_TE2 >= 0);
 
+% Assert delay 2 must be long enough for the spoiler gradient
+assert(delay_TE2 > mr.calcDuration(g_sp));
+
+
+
 %% Add Event Blocks to the Sequence
 
 % Loop over repetitions and define sequence blocks
 for i=1:Nrep
     seq.addBlock(rf_ex);
     seq.addBlock(delay_TE1);
-    seq.addBlock(rf_ref);
-    seq.addBlock(delay_TE2-adc.delay); % Why is there a minus here?
-    seq.addBlock(adc,mr.makeDelay(delay_TR));
+
+    % The refocusing and spoiler are added in the same addBlock call
+    seq.addBlock(rf_ref,g_sp);
+    % seq.addBlock(rf_ref);
+    % seq.addBlock(g_sp);
+
+    % The ADC and spoiler are also added in the same block?
+    seq.addBlock(adc,g_sp,mr.makeDelay(delay_TR));
 end
 
 %% Plot
